@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Chronos Mobile",
+    "slug": "chronos-mobile",
+    "scheme": "chronos",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#09090B",
+    "plugins": ["expo-router", "expo-notifications"],
+    "web": { "bundler": "metro" }
+  }
+}
