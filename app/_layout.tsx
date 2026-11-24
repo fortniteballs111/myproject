@@ -5,8 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Text, View } from 'react-native';
 
+import { Onboarding } from '../src/components/Onboarding';
 import { Button } from '../src/components/ui';
 import { feedback } from '../src/platform/haptics';
+import { registerOfflineWorker } from '../src/platform/offline';
 import { syncSessionReminders } from '../src/platform/reminders';
 import { hydrateScheduler, useSchedulerStore } from '../src/store/useSchedulerStore';
 
@@ -24,10 +26,13 @@ const theme = {
 export default function RootLayout() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
+  const onboardingComplete = useSchedulerStore(state => state.onboardingComplete);
   const sessions = useSchedulerStore(state => state.schedule.sessions);
   const remindersEnabled = useSchedulerStore(state => state.remindersEnabled);
   const focusId = useSchedulerStore(state => state.focus?.session.id);
   const runningSince = useSchedulerStore(state => state.focus?.runningSinceMs ?? null);
+
+  useEffect(registerOfflineWorker, []);
 
   useEffect(() => {
     let active = true;
@@ -74,7 +79,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
-      {status === 'ready' ? (
+      {status === 'ready' && !onboardingComplete ? <Onboarding /> : status === 'ready' ? (
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="focus/[sessionId]" options={{ presentation: 'fullScreenModal' }} />

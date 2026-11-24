@@ -1,0 +1,1 @@
+export function registerOfflineWorker(): void {}

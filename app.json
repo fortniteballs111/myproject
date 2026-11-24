@@ -7,7 +7,18 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#09090B",
-    "plugins": ["expo-router", "expo-notifications"],
-    "web": { "bundler": "metro" }
+    "plugins": [
+      "expo-router",
+      "expo-notifications"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./public/icon-192.png"
+    },
+    "icon": "./assets/icon.png",
+    "android": {
+      "package": "com.fortniteballs111.chronos"
+    }
   }
 }

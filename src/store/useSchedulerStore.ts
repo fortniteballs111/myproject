@@ -31,6 +31,8 @@ export interface SchedulerData {
 }
 
 interface SchedulerState extends SchedulerData {
+  onboardingComplete: boolean;
+  finishOnboarding: (mode: 'personal' | 'demo') => void;
   addGoal: (goal: Omit<Goal, 'id' | 'completedMinutes'>) => void;
   updateGoal: (id: string, updates: Partial<Omit<Goal, 'id' | 'completedMinutes'>>) => void;
   deleteGoal: (id: string) => void;
@@ -139,7 +141,7 @@ function replan(state: SchedulerData, patch: Partial<SchedulerData> = {}, today 
   };
 }
 
-function validateGoal(goal: Omit<Goal, 'id' | 'completedMinutes'>): void {
+export function validateGoal(goal: Omit<Goal, 'id' | 'completedMinutes'>): void {
   dateIndex(goal.deadlineISO);
   if (!goal.title.trim() || !Number.isInteger(goal.totalMinutesRequired) || goal.totalMinutesRequired < 1 ||
       !Number.isInteger(goal.minSessionMinutes) || !Number.isInteger(goal.maxSessionMinutes) ||
@@ -190,6 +192,16 @@ const orderedStorage: StateStorage = {
 
 export const useSchedulerStore = create<SchedulerState>()(persist((set, get) => ({
   ...initialData(),
+  onboardingComplete: false,
+  finishOnboarding: mode => {
+    if (get().onboardingComplete) return;
+    const data = initialData();
+    const fixedBlocks = data.fixedBlocks.filter(block => block.category === 'Отдых');
+    set({
+      ...(mode === 'demo' ? data : replan(data, { goals: [], fixedBlocks })),
+      onboardingComplete: true,
+    });
+  },
   addGoal: input => {
     validateGoal(input);
     set(state => replan(state, {
@@ -357,7 +369,14 @@ export const useSchedulerStore = create<SchedulerState>()(persist((set, get) => 
   name: 'chronos.scheduler.v1',
   storage: createJSONStorage(() => orderedStorage),
   skipHydration: true,
-  partialize: state => schedulerData(state),
+  partialize: state => ({ ...schedulerData(state), onboardingComplete: state.onboardingComplete }),
+  merge: (stored, current) => {
+    const previous = stored as Partial<SchedulerState> | undefined;
+    return {
+      ...current, ...previous,
+      onboardingComplete: previous?.onboardingComplete ?? Boolean(previous?.schedule),
+    };
+  },
 }));
 
 let hydration: Promise<void> | undefined;
